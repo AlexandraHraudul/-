@@ -1,74 +1,91 @@
 #include <iostream>
 #include <cstdlib>
 #include <conio.h>
+#include <windows.h>
 
 using namespace std;
 
 bool gameOver;
-// переменные размера поля игры
-const int width = 36;
-const int height = 20;
-// переменные координат змейки и фруктов
+// РїРµСЂРµРјРµРЅРЅС‹Рµ СЂР°Р·РјРµСЂР° РїРѕР»СЏ РёРіСЂС‹
+const int width = 24;
+const int height = 24;
+// РїРµСЂРµРјРµРЅРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚ Р·РјРµР№РєРё Рё С„СЂСѓРєС‚РѕРІ
 int x, y, fruitX, fruitY;
-// переменная счета игры
-int score;
-// переменные координат хвоста змейки
+// РїРµСЂРµРјРµРЅРЅР°СЏ СЃС‡РµС‚Р° РёРіСЂС‹
+int score, maxScore;
+// РїРµСЂРµРјРµРЅРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚ С…РІРѕСЃС‚Р° Р·РјРµР№РєРё
 int tailX[100], tailY[100];
 int nTail;
-// исчисления перемещений
-enum direction { STOP = 0, LEFT, RIGHT, UP, DOWN};
+// РёСЃС‡РёСЃР»РµРЅРёСЏ РїРµСЂРµРјРµС‰РµРЅРёР№
+enum direction { STOP = 0, LEFT = 1, RIGHT = -1, UP = 2, DOWN = -2};
 direction dir;
-// переменные выборов в меню
-int choice, backMenu, afterGame;
+direction prevdir;
+// РїРµСЂРµРјРµРЅРЅС‹Рµ РІС‹Р±РѕСЂРѕРІ РІ РјРµРЅСЋ
+char choice, backMenu, afterGame;
 
-// ф-ия настройки нужных параметров
+int sleep_time = 250;
+
+// С„-РёСЏ РЅР°СЃС‚СЂРѕР№РєРё РЅСѓР¶РЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ
 void Setup() {
 	gameOver = false;
 	score = 0;
 	dir = STOP; 
 	x = width/2 - 1;
 	y = height/2 - 1;
-	fruitX = rand() % width;
-	fruitY = rand() % height;
-	nTail = 0;
+	fruitX = rand() % (width-2) + 1;
+	fruitY = rand() % (height-2) + 1;
+    nTail = 0;
 } 
 
 void GameOver() {
 	gameOver = true;
 	system("cls"); 
+	if(score > maxScore) maxScore = score;
 	cout << endl;
-	cout << "________________________________________________________________________________"<< endl;
+	cout << "\x1b[33m________________________________________________________________________________"<< endl;
 	cout << endl;
-	cout << "        |$$$$$ |$$$$$ |$$$$$$$ |$$$$$    |$$$$$ |$  |$ |$$$$$ |$$$$$" << endl;
-	cout << "        |$     |$  |$ |$ |$ |$ |$        |$  |$ |$  |$ |$     |$  |$" << endl;
-	cout << "        |$|$$$ |$$$$$ |$ |$ |$ |$$$$     |$  |$ |$  |$ |$$$$  |$$$$" << endl;
-	cout << "        |$  |$ |$  |$ |$ |$ |$ |$        |$  |$ |$  |$ |$     |$  |$" << endl;
-	cout << "        |$$$$$ |$  |$ |$ |$ |$ |$$$$$    |$$$$$  |$$$  |$$$$$ |$  |$" << endl;
-	cout << "________________________________________________________________________________"<< endl;
+	cout << "         |$$$$$$ |$$$$$ |$$$$$$$ |$$$$$    |$$$$$ |$  |$ |$$$$$ |$$$$$" << endl;
+	cout << "         |$      |$  |$ |$ |$ |$ |$        |$  |$ |$  |$ |$     |$  |$" << endl;
+	cout << "         |$ |$$$ |$$$$$ |$ |$ |$ |$$$$     |$  |$ |$  |$ |$$$$  |$$$$" << endl;
+	cout << "         |$   |$ |$  |$ |$ |$ |$ |$        |$  |$ |$  |$ |$     |$  |$" << endl;
+	cout << "         |$$$$$$ |$  |$ |$ |$ |$ |$$$$$    |$$$$$  |$$$  |$$$$$ |$  |$" << endl;
+	cout << "________________________________________________________________________________\x1b[0m"<< endl;
 	cout << endl;
-	cout << "                            TOTAL SCORE : "<< score << endl;
+	cout << "                            TOTAL SCORE : " << score << endl;
+	cout << "                            RECORD SCORE : " << maxScore << endl;
 	cout << endl;
+    cout << "                            PRESS THE KEY                                 \n";
     cout << "                            [1] - TRY AGAIN                               \n";
     cout << "                            [0] - BACK TO MAIN MENU                       \n";
-	cout << endl;
-    cout << "                            Your choice: ";
-    cin >> afterGame;
+   // do {
+    	afterGame = getch();
+   // } while(afterGame!= '0' || afterGame!= '1' );
 }
-// ф-ия для прорисовки
+// С„-РёСЏ РґР»СЏ РїСЂРѕСЂРёСЃРѕРІРєРё
 void Draw() {
 	system("cls"); 
-	for(int i = 0; i <= (width+1)/2; i++)
+	/*for(int i = 0; i <= (width+1)/2; i++)
 		cout << "* ";
 	cout << endl;
+		
+	/*for(int i = 0; i < height-1; i++) {
+		for(int j = 0; j < width+1; j++){
+			if(j == 0 || j == width)
+				cout << "*";
+		}
+		cout << endl;
+	}*/
 	
 	for(int i = 0; i < height; i++) {
 		for(int j = 0; j < width; j++){
-			if(j == 0 || j == width-1)
-				cout << "*";
-		 	if(i == y && j == x)
+			
+			if(i == 0 || i == height-1 || j == 0 || j == width - 1)
+				cout << "\x1b[33m#\x1b[0m";
+			else {
+			if(i == y && j == x)
 				cout << "O";
 			else if(i == fruitY && j == fruitX)
-				cout << "F";
+				cout << "\x1b[32mF\x1b[0m";
 			else {
 				bool print = false;
 				for(int k = 0; k < nTail; k++) {
@@ -80,47 +97,78 @@ void Draw() {
 				if(!print)
 					cout << " ";
 			}
+		    }
 		}
 		cout << endl;
 	}
-	
-	for(int i = 0; i <= (width+1)/2; i++)
-		cout << "* ";
+
+	/*for(int i = 0; i <= (width+1)/2; i++)
+		cout << "* ";*/
 	cout << endl;
 	cout << " SCORE: " << score << endl;
-	cout << " PRESS [x] TO END THE GAME " << endl;
+	cout << " RECORD: " << maxScore << endl;
+	cout << " PRESS ANY KEY TO END THE GAME ";
 }
-// ф-ия отслеживания нажатий
+// С„-РёСЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РЅР°Р¶Р°С‚РёР№
 void Input() {
 	if(_kbhit()) {
-		switch(getch()) {
-			case 'a':
-			case 75:
-				dir = LEFT;
-				break;
-			case 'd':
-			case 77:
-				dir = RIGHT;
-				break;
-			case 's':
-			case 80:			
-				dir = DOWN;
-				break;
-			case 'w':
-			case 72:
-				dir = UP;
-				break;
-			case 'x':
-				GameOver();
-				break;
+		if(_getch() == 224) {
+			if(nTail == 0) {
+				switch(_getch()) {
+					case 75:
+						dir = LEFT;
+						break;
+					case 77:
+						dir = RIGHT;
+						break;
+					case 80:			
+						dir = DOWN;
+						break;
+					case 72:
+						dir = UP;
+						break;
+				}
+				prevdir = dir;
+			} else {
+				switch(_getch()) {
+				
+				case 75:
+					if(prevdir == RIGHT) break;
+					else {
+						dir = LEFT;
+						break;
+				    }
+				case 77:
+					if(prevdir == LEFT) break;
+					else {
+						dir = RIGHT;
+						break;
+					}	
+				case 80:
+					if(prevdir == UP) break;
+					else {			
+						dir = DOWN;
+						break;
+					}
+				case 72:
+				if(prevdir == DOWN) break;
+					else {
+						dir = UP;
+						break;
+					}
+				}
+				prevdir = dir;
+			}
 		}
+		else GameOver();
 	}
-}
-// ф-ия логики самой игры
+}	  
+
+//С„-РёСЏ Р»РѕРіРёРєРё РёРіСЂС‹
 void Logic() {
 	int prevX = tailX[0];
 	int prevY = tailY[0];
-	int prev2X, prev2Y;
+	int	prev2X, prev2Y;
 	tailX[0] = x;
 	tailY[0] = y;
 	
@@ -142,7 +190,7 @@ void Logic() {
 			break;
 		case UP:
 			y--;
-			break;
+			break;        
 		case DOWN:
 			y++;
 			break;
@@ -154,14 +202,14 @@ void Logic() {
 	   }
 	}
 		
-	if(x == width-1 || x < 0 || y == height || y < 0) {
+	if(x > width-2 || x < 1 || y > height-2 || y < 1) {
 		GameOver();
     }
 	
 	if(x == fruitX && y == fruitY) {
 		score += 100;
-		fruitX = rand() % width;
-		fruitY = rand() % height;
+		fruitX = rand() % (width-2) + 1;
+		fruitY = rand() % (height-2) + 1;
 		nTail ++;
 	}	
 }
@@ -169,27 +217,28 @@ void Logic() {
 void mainMenu() {
 	system("cls");
 	cout << endl;
-	cout << "________________________________________________________________________________\n";
+	cout << "\x1b[33m________________________________________________________________________________\n";
     cout << endl;
 	cout << "                            G A M E   M E N U                                  \n";
-    cout << "________________________________________________________________________________\n";
+    cout << "________________________________________________________________________________\x1b[0m\n";
     cout << endl;
+	cout << "                             PRESS THE KEY                                   \n";
+	cout << endl;
 	cout << "                            [1] - START GAME                                 \n";
     cout << endl;
     cout << "                            [2] - ABOUT GAME                                 \n";
     cout << endl;  
 	cout << "                            [3] - QUIT                                       \n";
-	cout << endl;
-    cout << "                            Your choice: ";
-    cin >> choice; 
+    choice = getch(); 
 }
 
 void aboutGame() {
 	system("cls"); 
-	cout << "________________________________________________________________________________\n";
-    //cout << endl;
-	cout << "                            A B O U T   G A M E                                  \n";
-    cout << "________________________________________________________________________________\n"; 
+	cout << "\x1b[33m________________________________________________________________________________\n";
+	cout << endl;
+    cout << "                            A B O U T   G A M E                                  \n";
+    cout << "________________________________________________________________________________\x1b[0m\n"; 
+	cout << endl;
 	cout << "                            Welcome to 'Snake'!\n";
     cout << " - At the beginning of the game, the snake consists of one link\n";
 	cout << " - If snakes head bumps into an obstacle (the snake stumbles on\n";
@@ -199,54 +248,73 @@ void aboutGame() {
 	cout << " - When the snake eats fruit it grows by one link, and on the field in\n";
 	cout << "   a new portion of food automatically appears in an arbitrary space   \n";
 	cout << " - To control the snake, you can use the keys:\n";
-	cout << "	        ^\n";
-	cout << "	'w' or '|' to go UP, \n";
-	cout << "	'a' or '<-' - LEFT, \n";
-	cout << "	'd' or '->' - RIGHT, \n";
-	cout << "	's' or '|' - DOWN\n";
-	cout << "	        v\n";
+	cout << "	'^' to go UP, \n";
+	cout << "	'<' - LEFT, \n";
+	cout << "	'>' - RIGHT, \n";
+	cout << "	'v' - DOWN\n";
 	cout << " - When the snake eats fruit, the score is increased by 100 points\n";
-	cout << " - To QUIT the game press 'x'\n";
-    cout << endl;
+	cout << " - 'F' on the field marks a fruit to eat\n";
+	//cout << " - To QUIT the game press 'x'\n";
+	cout << endl;
     cout << "                            PRESS [0] TO BACK  ";
-    cin >> backMenu;
+    //cin >> backMenu;
+    backMenu = getch();
+    
+}
+void start() {
+	system("cls");
+	cout << endl;
+	cout << "\x1b[33m________________________________________________________________________________\n";
+ 	cout << endl; 
+	cout << endl; 
+	cout << endl;
+	cout << "                  |$$$$    |$   |$    |$$$    |$  |$   |$$$$$           \n";
+	cout << "                  |$       |$$  |$   |$  |$   |$ |$    |$               \n";
+	cout << "                  |$$$$$   |$|$ $$   |$$$$$   |$|$     |$$$$            \n";
+	cout << "                      |$   |$ |$|$   |$  |$   |$ |$    |$               \n";
+	cout << "                  |$$$$$   |$   |$   |$  |$   |$  |$   |$$$$$           \n";
+	cout << endl; 
+	cout << endl; 
+	cout << endl;
+	cout << "________________________________________________________________________________\x1b[0m"; 
+	Sleep(2000);
 }
 
-// ф-ия работы игры
+// С„-РёСЏ СЂР°Р±РѕС‚С‹ РёРіСЂС‹
 void game() {
 	Setup();
-	do {
+	do { 
     	Draw();
-		Input();
+   		Input();
 		Logic();
+		Sleep(sleep_time);
 	} while(!gameOver);
 }
 
 int main() {
+	start();
     do {
         mainMenu();
         
 		switch(choice) {
-            case 1:
+            case '1':
+            	game();
             	do {
-	            	game();
-    	        	
-					switch(afterGame) {
-        	    		case 1:
-            				game();
-            			case 0:
-							break;            		
-					}
-				} while(afterGame != 0);
-			    break;
-            case 2:
+			if (afterGame == '1') game();
+			else if (afterGame == '0') break;
+			else afterGame = _getch();     
+		} while(afterGame != '0');
+		break;
+            case '2':
                 do {
-        			aboutGame();
-    			} while(backMenu != 0);
+        		aboutGame();
+    		} while(backMenu != '0');
                 break;
-            case 3:
+            case '3':
                 break;
+            default:
+            	break;
         }
-    } while(choice != 3);
+    } while(choice != '3');
     return 0;
-}
+}            
